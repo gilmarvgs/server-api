@@ -1,2 +1,2 @@
-# goexpert
-desafios da pós go expert
+# client-server-api
+desafio 1 - pós go expert
