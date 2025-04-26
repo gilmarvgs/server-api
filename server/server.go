@@ -3,26 +3,25 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/gilmarvgs/db"
+	"github.com/gilmarvgs/handler"
 )
 
 func main() {
-	http.HandleFunc("/", handler)
-	http.ListenAndServe(":8080", nil)
-}
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	log.Println("request iniciada")
-	defer log.Println("request finalizada")
-	select {
-	case <-time.After(10 * time.Second):
-		// imprime o status da requisição no console
-		log.Println("request processada com sucesso")
-		// imprime a resposta no navegador
-		w.Write([]byte("request processada com sucesso"))
-	case <-ctx.Done():
-		log.Println("request cancelada pelo cliente", ctx.Err())
-		http.Error(w, "request cancelada pelo cliente", http.StatusRequestTimeout)
+	database, err := db.InitializeDatabase()
+
+	if err != nil {
+		log.Fatalf("Erro ao inicializar o banco de dados: %v", err)
 	}
+
+	defer database.Close()
+
+	// Configura o endpoint e passa o banco de dados para o handler
+	http.HandleFunc("/cotacao", func(w http.ResponseWriter, r *http.Request) {
+		handler.Handler(database, w, r)
+	})
+
+	http.ListenAndServe(":8080", nil)
 }
