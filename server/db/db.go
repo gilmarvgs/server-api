@@ -35,6 +35,7 @@ func InsertCotacao(ctx context.Context, db *sql.DB, data string, valor float64) 
 	// Configura o log para incluir milissegundos
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
 
+	log.Println("inserindo cotação no banco de dados...")
 	// Prepara a consulta para inserção
 	insertSQL := `INSERT INTO cotacao (data, valor) VALUES (?, ?)`
 	stmt, err := db.PrepareContext(ctx, insertSQL)
@@ -45,13 +46,10 @@ func InsertCotacao(ctx context.Context, db *sql.DB, data string, valor float64) 
 
 	// Executa a inserção com o contexto
 	_, err = stmt.ExecContext(ctx, data, valor)
+	log.Println("fim inserção")
 	if err != nil {
-		// Log para depuração
-		log.Printf("Erro ao executar a inserção: %v", err)
-
 		// Verifica se o erro foi causado por timeout
 		if ctx.Err() != nil {
-			log.Printf("Contexto expirado: %v", ctx.Err())
 			if ctx.Err() == context.DeadlineExceeded {
 				return fmt.Errorf("operação excedeu o limite de tempo")
 			}
@@ -59,6 +57,5 @@ func InsertCotacao(ctx context.Context, db *sql.DB, data string, valor float64) 
 		return fmt.Errorf("erro ao executar a inserção: %w", err)
 	}
 
-	log.Println("cotacao recebida e registrada no banco de dados")
 	return nil
 }
